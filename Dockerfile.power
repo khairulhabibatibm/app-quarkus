@@ -1,0 +1,23 @@
+## Stage 1 : build with maven builder image with native capabilities
+FROM maven:3.8.3-openjdk-11-slim AS build
+WORKDIR /app
+COPY pom.xml .
+RUN mvn -e -B dependency:resolve
+COPY src ./src
+RUN mvn clean -e -B package
+
+## Stage 2 : create the docker final image
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
+WORKDIR /work/
+COPY --from=build /code/target/*.jar /work/application
+
+# set up permissions for user `1001`
+RUN chmod 775 /work /work/application \
+  && chown -R 1001 /work \
+  && chmod -R "g+rwX" /work \
+  && chown -R 1001:root /work
+
+EXPOSE 8080
+USER 1001
+
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
