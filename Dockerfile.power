@@ -1,5 +1,5 @@
 ## Stage 1 : build with maven builder image with native capabilities
-FROM maven:3.8.3-openjdk-11-slim AS build
+FROM maven:3.8-jdk-11-openj9 AS build
 WORKDIR /app
 COPY pom.xml .
 RUN mvn -e -B dependency:resolve
